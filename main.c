@@ -11,8 +11,8 @@ YarrowContext yarrowContext;
 
 // Forward declarations
 error_t trngGetRandomData(uint8_t *data, size_t length);
-error_t signature_generation();
-error_t signature_verification();
+error_t ecdsa_signature_generation();
+error_t ecdsa_signature_verification();
 
 error_t trngGetRandomData(uint8_t *data, size_t length)
 {
@@ -67,7 +67,7 @@ int init_crypto_rng(uint8_t *seed, size_t length)
     return error;
 }
 
-error_t signature_generation()
+error_t ecdsa_signature_generation()
 {
     error_t  error;
     EcDomainParameters params;
@@ -145,7 +145,7 @@ error_t signature_generation()
     return error;
 }
 
-error_t signature_verification()
+error_t ecdsa_signature_verification()
 {
     error_t error;
     EcDomainParameters params;
@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
         printf("Failed to initialize TRNG seed.\r\n");
     }
 
-    error = signature_generation();
+    error = ecdsa_signature_generation();
     if (error)
     {
         printf("Failed to generate ECDSA signature.\r\n");
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 
     printf("\r\n");
 
-    error = signature_verification();
+    error = ecdsa_signature_verification();
     if (error)
     {
         printf("Failed to verify ECDSA signature.\r\n");
