@@ -18,9 +18,10 @@
 - From within 'build' directory, execute the following commands:
   - cmake ..
   - cmake --build .
-- ./ecdsa_sha_demo will run the demo.
-  M -pubout -out my_rsa_public.key
-- Build the demo using the steps in the previous step.
+
+### Running the demo
+
+- ./ecdsa_sha_demo will run the demo (from within build/ directory)
 
 ### Note:
 

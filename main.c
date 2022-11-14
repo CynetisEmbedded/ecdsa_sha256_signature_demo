@@ -9,6 +9,9 @@
 // PRNG context
 YarrowContext yarrowContext;
 
+// Forward declarations
+int generate_random_seed(uint8_t *seed, size_t *randSeedSize);
+
 // This is the message to be signed.
 unsigned char message[] = {0xF4, 0x5D, 0x55, 0xF3, 0x55, 0x51, 0xE9, 0x75, 0xD6,
                            0xA8, 0xDC, 0x7E, 0xA9, 0xF4, 0x88, 0x59,
@@ -40,6 +43,21 @@ unsigned char message[] = {0xF4, 0x5D, 0x55, 0xF3, 0x55, 0x51, 0xE9, 0x75, 0xD6,
                            0xF0, 0xF1, 0xC4, 0xCB, 0x0D, 0x0E, 0x00, 0x1D,
                            0xD5, 0x9D, 0x73, 0xBE, 0x12};
 
+int generate_random_seed(uint8_t *seed, size_t *randSeedSize)
+{
+    // Generatea CSPRNG Seed (32 bytes)
+    // https://man7.org/linux/man-pages/man2/getrandom.2.html
+    // getrandom() was introduced in version 3.17 of the Linux kernel.
+    *randSeedSize = getrandom(seed, 32, GRND_RANDOM);
+    if (*randSeedSize != 32)
+    {
+        // Incorrect seed length
+        return ERROR_FAILURE;
+    }
+
+    return NO_ERROR;
+}
+
 int main(int argc, char *argv[])
 {
     error_t error;
@@ -55,14 +73,14 @@ int main(int argc, char *argv[])
     Mpi t;
 
     uint8_t randSeed[32];
-    size_t randSeedSize;
+    size_t randSeedSize = 0;
 
     error = NO_ERROR;
     messageLen = sizeof(message);
 
     // Initialize EC domain parameters
     ecInitDomainParameters(&params);
-    //Load EC domain parameters
+    // Load EC domain parameters
     ecLoadDomainParameters(&params, SECP192R1_CURVE);
     // Initialize ECDSA private key
     ecInitPrivateKey(&privateKey);
@@ -79,16 +97,13 @@ int main(int argc, char *argv[])
     do
     {
         printf("Initializing CSPRNG...\n");
-        // Generatea CSPRNG Seed (32 bytes)
-        // https://man7.org/linux/man-pages/man2/getrandom.2.html
-        // getrandom() was introduced in version 3.17 of the Linux kernel.
-        randSeedSize = getrandom(randSeed, 32, GRND_RANDOM);
-        if (randSeedSize != 32)
+        error = generate_random_seed(randSeed, &randSeedSize);
+        if (error)
         {
-            // Debug message
-            printf("Error. CSPRNG Seed failed (%d)\r\n", error);
+            printf("Error. Random seed initialization failed. (%d)\r\n", error);
             break;
         }
+
         // Initialize PRNG Algo
         error = yarrowInit(&yarrowContext);
         if (error)
@@ -129,7 +144,7 @@ int main(int argc, char *argv[])
         printf("Done.\n");
 
         printf("Generating ECDSA signature...\n");
-        //ECDSA signature generation
+        // ECDSA signature generation
         error = ecdsaGenerateSignature(YARROW_PRNG_ALGO, &yarrowContext, &params,
                                        &privateKey, digest, SHA256_DIGEST_SIZE, &signature);
 
