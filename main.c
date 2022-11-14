@@ -31,7 +31,7 @@ error_t trngGetRandomData(uint8_t *data, size_t length)
     return NO_ERROR;
 }
 
-int init_crypto_rng(uint8_t *seed, size_t length)
+error_t init_crypto_rng(uint8_t *seed, size_t length)
 {
     uint_t i;
     uint32_t value;
