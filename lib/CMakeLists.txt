@@ -69,16 +69,32 @@ target_sources(cyclone_crypto
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/ecc/ec.h
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkc/rsa.c
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkc/rsa.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/pem_common.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/pem_common.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/pem_decrypt.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/pem_decrypt.h
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/pem_import.c
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/pem_import.h
-        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_signature.c
-        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_signature.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_sign_generate.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_sign_generate.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_sign_format.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_sign_format.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_sign_parse.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_sign_parse.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_sign_verify.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_sign_verify.h
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_create.c
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_create.h
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_parse.c
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_parse.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_ext_parse.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_ext_parse.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_ext_format.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_ext_format.h
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_validate.c
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_validate.h
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_format.c
+        ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_cert_format.h
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_key_parse.c
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_key_parse.h
         ${PROJECT_SOURCE_DIR}/lib/cyclone_crypto/pkix/x509_key_format.c

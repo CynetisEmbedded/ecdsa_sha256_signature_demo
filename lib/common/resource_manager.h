@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 #ifndef _RESOURCE_MANAGER_H
@@ -60,38 +60,38 @@ typedef enum
  * @brief Resource entry
  **/
 
-typedef __start_packed struct
+typedef __packed_struct
 {
    char_t type;
    uint32_t dataStart;
    uint32_t dataLength;
    uint8_t nameLength;
    char_t name[];
-} __end_packed ResEntry;
+} ResEntry;
 
 
 /**
  * @brief Root entry
  **/
 
-typedef __start_packed struct
+typedef __packed_struct
 {
    char_t type;
    uint32_t dataStart;
    uint32_t dataLength;
    uint8_t nameLength;
-} __end_packed ResRootEntry;
+} ResRootEntry;
 
 
 /**
  * @brief Resource header
  **/
 
-typedef __start_packed struct
+typedef __packed_struct
 {
    uint32_t totalSize;
    ResRootEntry rootEntry;
-} __end_packed ResHeader;
+} ResHeader;
 
 
 //CodeWarrior or Win32 compiler?

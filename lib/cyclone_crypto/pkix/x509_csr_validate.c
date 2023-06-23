@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This file is part of CycloneCRYPTO Open.
  *
@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 //Switch to the appropriate trace level
@@ -34,7 +34,7 @@
 //Dependencies
 #include "core/crypto.h"
 #include "pkix/x509_csr_validate.h"
-#include "pkix/x509_signature.h"
+#include "pkix/x509_sign_verify.h"
 #include "debug.h"
 
 //Check crypto library configuration
@@ -57,8 +57,7 @@ error_t x509ValidateCsr(const X509CsrInfo *csrInfo)
 
    //The ASN.1 DER-encoded certificationRequestInfo is used as the input
    //to the signature function
-   error = x509VerifySignature(csrInfo->certReqInfo.rawData,
-      csrInfo->certReqInfo.rawDataLen, &csrInfo->signatureAlgo,
+   error = x509VerifySignature(&csrInfo->certReqInfo.raw, &csrInfo->signatureAlgo,
       &csrInfo->certReqInfo.subjectPublicKeyInfo, &csrInfo->signatureValue);
 
    //Return status code

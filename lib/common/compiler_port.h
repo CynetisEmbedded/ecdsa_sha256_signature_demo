@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 #ifndef _COMPILER_PORT_H
@@ -33,6 +33,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inttypes.h>
+
+//ARM compiler V6?
+#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
+   #include <stdarg.h>
+#endif
 
 //C++ guard
 #ifdef __cplusplus
@@ -87,22 +92,16 @@ typedef unsigned int uint_t;
 #elif defined(IDF_VER)
    #undef PRIu8
    #undef PRIu16
-   #undef PRIu32
    #undef PRIx8
    #undef PRIx16
-   #undef PRIx32
    #undef PRIX8
    #undef PRIX16
-   #undef PRIX32
    #define PRIu8 "u"
    #define PRIu16 "u"
-   #define PRIu32 "u"
    #define PRIx8 "x"
    #define PRIx16 "x"
-   #define PRIx32 "x"
    #define PRIX8 "X"
    #define PRIX16 "X"
-   #define PRIX32 "X"
    #define PRIuSIZE "u"
    #define PRIXSIZE "X"
    #define PRIuTIME "lu"
@@ -116,6 +115,24 @@ typedef unsigned int uint_t;
    #define PRIuSIZE "Iu"
    #define PRIXSIZE "IX"
    #define PRIuTIME "lu"
+//GCC compiler (with newlib-nano runtime library)?
+#elif defined(__GNUC__) && defined(_NANO_FORMATTED_IO) && (_NANO_FORMATTED_IO != 0)
+   #undef PRIu8
+   #undef PRIu16
+   #undef PRIx8
+   #undef PRIx16
+   #undef PRIX8
+   #undef PRIX16
+   #define PRIu8 "u"
+   #define PRIu16 "u"
+   #define PRIx8 "x"
+   #define PRIx16 "x"
+   #define PRIX8 "X"
+   #define PRIX16 "X"
+   #define PRIuSIZE "u"
+   #define PRIXSIZE "X"
+   #define PRIuTIME "u"
+//GCC compiler (with newlib-standard runtime library)?
 #else
    #define PRIuSIZE "u"
    #define PRIXSIZE "X"
@@ -124,11 +141,21 @@ typedef unsigned int uint_t;
 
 //ARM compiler V6?
 #if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
+   int vsnprintf(char *dest, size_t size, const char *format, va_list ap);
+   char *strtok_r(char *s, const char *delim, char **last);
+//GCC compiler (for PowerPC architecture)?
+#elif defined(__GNUC__) && defined(__PPC_EABI__)
+   typedef uint32_t time_t;
+   int strcasecmp(const char *s1, const char *s2);
+   int strncasecmp(const char *s1, const char *s2, size_t n);
    char *strtok_r(char *s, const char *delim, char **last);
 //GCC compiler?
 #elif defined(__GNUC__)
    int strcasecmp(const char *s1, const char *s2);
    int strncasecmp(const char *s1, const char *s2, size_t n);
+   char *strtok_r(char *s, const char *delim, char **last);
+//Tasking compiler?
+#elif defined(__TASKING__)
    char *strtok_r(char *s, const char *delim, char **last);
 //NXP CodeWarrior compiler?
 #elif defined(__CWCC__)
@@ -152,48 +179,54 @@ typedef unsigned int uint_t;
 
 //ARM compiler V6?
 #if defined(__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
-   #undef __start_packed
-   #define __start_packed
-   #undef __end_packed
-   #define __end_packed __attribute__((packed))
+   #undef __packed_struct
+   #define __packed_struct struct __attribute__((packed))
+   #undef __packed_union
+   #define __packed_union union __attribute__((packed))
 //GCC compiler?
 #elif defined(__GNUC__)
-   #undef __start_packed
-   #define __start_packed
-   #undef __end_packed
-   #define __end_packed __attribute__((__packed__))
+   #undef __packed_struct
+   #define __packed_struct struct __attribute__((__packed__))
+   #undef __packed_union
+   #define __packed_union union __attribute__((__packed__))
 //ARM compiler?
 #elif defined(__CC_ARM)
    #pragma anon_unions
-   #undef __start_packed
-   #define __start_packed __packed
-   #undef __end_packed
-   #define __end_packed
+   #undef __packed_struct
+   #define __packed_struct __packed struct
+   #undef __packed_union
+   #define __packed_union __packed union
 //IAR compiler?
 #elif defined(__IAR_SYSTEMS_ICC__)
-   #undef __start_packed
-   #define __start_packed __packed
-   #undef __end_packed
-   #define __end_packed
+   #undef __packed_struct
+   #define __packed_struct __packed struct
+   #undef __packed_union
+   #define __packed_union __packed union
+//Tasking compiler?
+#elif defined(__TASKING__)
+   #undef __packed_struct
+   #define __packed_struct struct __packed__
+   #undef __packed_union
+   #define __packed_union union __packed__
 //NXP CodeWarrior compiler?
 #elif defined(__CWCC__)
-   #undef __start_packed
-   #define __start_packed
-   #undef __end_packed
-   #define __end_packed
+   #undef __packed_struct
+   #define __packed_struct struct
+   #undef __packed_union
+   #define __packed_union union
 //TI ARM compiler?
 #elif defined(__TI_ARM__)
-   #undef __start_packed
-   #define __start_packed
-   #undef __end_packed
-   #define __end_packed __attribute__((__packed__))
+   #undef __packed_struct
+   #define __packed_struct struct __attribute__((__packed__))
+   #undef __packed_union
+   #define __packed_union union __attribute__((__packed__))
 //Win32 compiler?
 #elif defined(_WIN32)
    #undef interface
-   #undef __start_packed
-   #define __start_packed
-   #undef __end_packed
-   #define __end_packed
+   #undef __packed_struct
+   #define __packed_struct struct
+   #undef __packed_union
+   #define __packed_union union
 #endif
 
 #ifndef __weak_func
@@ -209,6 +242,9 @@ typedef unsigned int uint_t;
    //IAR compiler?
    #elif defined(__IAR_SYSTEMS_ICC__)
       #define __weak_func __weak
+   //Tasking compiler?
+   #elif defined(__TASKING__)
+      #define __weak_func __attribute__((weak))
    //NXP CodeWarrior compiler?
    #elif defined(__CWCC__)
       #define __weak_func

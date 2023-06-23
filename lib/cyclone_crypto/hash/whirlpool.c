@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This file is part of CycloneCRYPTO Open.
  *
@@ -30,7 +30,7 @@
  * in length, and produces a message digest of 512 bits
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 //Switch to the appropriate trace level
@@ -294,9 +294,13 @@ void whirlpoolFinal(WhirlpoolContext *context, uint8_t *digest)
 
    //Pad the message so that its length is congruent to 32 modulo 64
    if(context->size < 32)
+   {
       paddingSize = 32 - context->size;
+   }
    else
+   {
       paddingSize = 64 + 32 - context->size;
+   }
 
    //Append padding
    whirlpoolUpdate(context, padding, paddingSize);

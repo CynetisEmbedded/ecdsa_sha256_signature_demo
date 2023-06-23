@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 #ifndef _OS_PORT_H
@@ -42,12 +42,15 @@
 #define timeCompare(t1, t2) ((int32_t) ((t1) - (t2)))
 
 //Miscellaneous macros
-#ifndef FALSE
-   #define FALSE 0
-#endif
+#if !defined(__AT32F403A_407_LIBRARY_VERSION) && \
+   !defined(__AT32F435_437_LIBRARY_VERSION)
+  #ifndef FALSE
+     #define FALSE 0
+  #endif
 
-#ifndef TRUE
-   #define TRUE 1
+  #ifndef TRUE
+     #define TRUE 1
+  #endif
 #endif
 
 #ifndef LSB
@@ -108,6 +111,9 @@
 //Micrium uC/OS-III port?
 #elif defined(USE_UCOS3)
    #include "os_port_ucos3.h"
+//PX5 port?
+#elif defined(USE_PX5)
+   #include "os_port_px5.h"
 //Segger embOS port?
 #elif defined(USE_EMBOS)
    #include "os_port_embos.h"
@@ -147,6 +153,12 @@
 #ifndef osMemcmp
    #include <string.h>
    #define osMemcmp(p1, p2, length) memcmp(p1, p2, length)
+#endif
+
+//Search for the first occurrence of a given character
+#ifndef osMemchr
+   #include <string.h>
+   #define osMemchr(p, c, length) memchr(p, c, length)
 #endif
 
 //Get string length
@@ -219,6 +231,12 @@
 #ifndef osSprintf
    #include <stdio.h>
    #define osSprintf(dest, ...) sprintf(dest, __VA_ARGS__)
+#endif
+
+//Format string
+#ifndef osSnprintf
+   #include <stdio.h>
+   #define osSnprintf(dest, size, ...) snprintf(dest, size, __VA_ARGS__)
 #endif
 
 //Format string

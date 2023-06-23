@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This file is part of CycloneCRYPTO Open.
  *
@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 //Switch to the appropriate trace level
@@ -66,8 +66,8 @@ error_t x509FormatSubjectPublicKeyInfo(const X509SubjectPublicKeyInfo *publicKey
    Asn1Tag tag;
 
    //Get the public key identifier
-   oid = publicKeyInfo->oid;
-   oidLen = publicKeyInfo->oidLen;
+   oid = publicKeyInfo->oid.value;
+   oidLen = publicKeyInfo->oid.length;
 
    //Point to the buffer where to write the ASN.1 structure
    p = output;
@@ -84,14 +84,14 @@ error_t x509FormatSubjectPublicKeyInfo(const X509SubjectPublicKeyInfo *publicKey
       dsaPublicKey = (DsaPublicKey *) publicKey;
 
       //Format AlgorithmIdentifier field
-      error = x509FormatAlgorithmIdentifier(publicKeyInfo,
+      error = x509FormatAlgoId(publicKeyInfo,
          &dsaPublicKey->params, p, &n);
    }
    else
 #endif
    {
       //Format AlgorithmIdentifier field
-      error = x509FormatAlgorithmIdentifier(publicKeyInfo, NULL, p, &n);
+      error = x509FormatAlgoId(publicKeyInfo, NULL, p, &n);
    }
 
    //Any error to report?
@@ -274,7 +274,7 @@ error_t x509FormatSubjectPublicKeyInfo(const X509SubjectPublicKeyInfo *publicKey
  * @return Error code
  **/
 
-error_t x509FormatAlgorithmIdentifier(const X509SubjectPublicKeyInfo *publicKeyInfo,
+error_t x509FormatAlgoId(const X509SubjectPublicKeyInfo *publicKeyInfo,
    const void *params, uint8_t *output, size_t *written)
 {
    error_t error;
@@ -286,8 +286,8 @@ error_t x509FormatAlgorithmIdentifier(const X509SubjectPublicKeyInfo *publicKeyI
    Asn1Tag tag;
 
    //Get the public key identifier
-   oid = publicKeyInfo->oid;
-   oidLen = publicKeyInfo->oidLen;
+   oid = publicKeyInfo->oid.value;
+   oidLen = publicKeyInfo->oid.length;
 
    //Point to the buffer where to write the ASN.1 structure
    p = output;
@@ -445,8 +445,8 @@ error_t x509FormatRsaPublicKey(const X509RsaPublicKey *rsaPublicKey,
    tag.constructed = FALSE;
    tag.objClass = ASN1_CLASS_UNIVERSAL;
    tag.objType = ASN1_TYPE_INTEGER;
-   tag.length = rsaPublicKey->nLen;
-   tag.value = rsaPublicKey->n;
+   tag.length = rsaPublicKey->n.length;
+   tag.value = rsaPublicKey->n.value;
 
    //Write the corresponding ASN.1 tag
    error = asn1WriteTag(&tag, FALSE, p, &n);
@@ -462,8 +462,8 @@ error_t x509FormatRsaPublicKey(const X509RsaPublicKey *rsaPublicKey,
    tag.constructed = FALSE;
    tag.objClass = ASN1_CLASS_UNIVERSAL;
    tag.objType = ASN1_TYPE_INTEGER;
-   tag.length = rsaPublicKey->eLen;
-   tag.value = rsaPublicKey->e;
+   tag.length = rsaPublicKey->e.length;
+   tag.value = rsaPublicKey->e.value;
 
    //Write the corresponding ASN.1 tag
    error = asn1WriteTag(&tag, FALSE, p, &n);
@@ -497,343 +497,6 @@ error_t x509FormatRsaPublicKey(const X509RsaPublicKey *rsaPublicKey,
 
 
 /**
- * @brief Format RSASSA-PSS parameters
- * @param[in] rsaPssParams Pointer to the RSA-PSS parameters
- * @param[out] output Buffer where to format the ASN.1 structure
- * @param[out] written Length of the resulting ASN.1 structure
- * @return Error code
- **/
-
-error_t x509FormatRsaPssParameters(const X509RsaPssParameters *rsaPssParams,
-   uint8_t *output, size_t *written)
-{
-   error_t error;
-   size_t n;
-   size_t length;
-   uint8_t *p;
-   Asn1Tag tag;
-
-   //Point to the buffer where to write the ASN.1 structure
-   p = output;
-   //Length of the ASN.1 structure
-   length = 0;
-
-   //Format hashAlgorithm parameter
-   error = x509FormatRsaPssHashAlgo(rsaPssParams, p, &n);
-   //Any error to report?
-   if(error)
-      return error;
-
-   //Advance data pointer
-   p += n;
-   length += n;
-
-   //Format maskGenAlgorithm parameter
-   error = x509FormatRsaPssMaskGenAlgo(rsaPssParams, p, &n);
-   //Any error to report?
-   if(error)
-      return error;
-
-   //Advance data pointer
-   p += n;
-   length += n;
-
-   //Format saltLength parameter
-   error = x509FormatRsaPssSaltLength(rsaPssParams, p, &n);
-   //Any error to report?
-   if(error)
-      return error;
-
-   //Advance data pointer
-   p += n;
-   length += n;
-
-   //The RSASSA-PSS parameters are encapsulated within a sequence
-   tag.constructed = TRUE;
-   tag.objClass = ASN1_CLASS_UNIVERSAL;
-   tag.objType = ASN1_TYPE_SEQUENCE;
-   tag.length = length;
-   tag.value = output;
-
-   //Write the corresponding ASN.1 tag
-   error = asn1WriteTag(&tag, FALSE, output, &n);
-   //Any error to report?
-   if(error)
-      return error;
-
-   //Total number of bytes that have been written
-   *written = n;
-
-   //Successful processing
-   return NO_ERROR;
-}
-
-
-/**
- * @brief Format RSASSA-PSS hash algorithm
- * @param[in] rsaPssParams Pointer to the RSA-PSS parameters
- * @param[out] output Buffer where to format the ASN.1 structure
- * @param[out] written Length of the resulting ASN.1 structure
- * @return Error code
- **/
-
-error_t x509FormatRsaPssHashAlgo(const X509RsaPssParameters *rsaPssParams,
-   uint8_t *output, size_t *written)
-{
-   error_t error;
-   size_t n;
-   Asn1Tag tag;
-
-   //Length of the ASN.1 structure
-   n = 0;
-
-   //The default hash algorithm is SHA-1
-   if(rsaPssParams->hashAlgo != NULL && rsaPssParams->hashAlgoLen > 0)
-   {
-      //Write the hash algorithm identifier
-      tag.constructed = FALSE;
-      tag.objClass = ASN1_CLASS_UNIVERSAL;
-      tag.objType = ASN1_TYPE_OBJECT_IDENTIFIER;
-      tag.length = rsaPssParams->hashAlgoLen;
-      tag.value = rsaPssParams->hashAlgo;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, output, &n);
-      //Any error to report?
-      if(error)
-         return error;
-
-      //The hashAlgorithm parameter is encapsulated within a sequence
-      tag.constructed = TRUE;
-      tag.objClass = ASN1_CLASS_UNIVERSAL;
-      tag.objType = ASN1_TYPE_SEQUENCE;
-      tag.length = n;
-      tag.value = output;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, output, &n);
-      //Any error to report?
-      if(error)
-         return error;
-
-      //Explicit tagging shall be used to encode each parameter
-      tag.constructed = TRUE;
-      tag.objClass = ASN1_CLASS_CONTEXT_SPECIFIC;
-      tag.objType = 0;
-      tag.length = n;
-      tag.value = output;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, output, &n);
-      //Any error to report?
-      if(error)
-         return error;
-   }
-
-   //Total number of bytes that have been written
-   *written = n;
-
-   //Successful processing
-   return NO_ERROR;
-}
-
-
-/**
- * @brief Format RSASSA-PSS mask generation algorithm
- * @param[in] rsaPssParams Pointer to the RSA-PSS parameters
- * @param[out] output Buffer where to format the ASN.1 structure
- * @param[out] written Length of the resulting ASN.1 structure
- * @return Error code
- **/
-
-error_t x509FormatRsaPssMaskGenAlgo(const X509RsaPssParameters *rsaPssParams,
-   uint8_t *output, size_t *written)
-{
-   error_t error;
-   size_t n;
-   size_t length;
-   uint8_t *p;
-   Asn1Tag tag;
-
-   //Point to the buffer where to write the ASN.1 structure
-   p = output;
-   //Length of the ASN.1 structure
-   length = 0;
-
-   //The default mask generation function is MGF1
-   if(rsaPssParams->maskGenAlgo != NULL && rsaPssParams->maskGenAlgoLen > 0)
-   {
-      //Write the mask generation algorithm identifier
-      tag.constructed = FALSE;
-      tag.objClass = ASN1_CLASS_UNIVERSAL;
-      tag.objType = ASN1_TYPE_OBJECT_IDENTIFIER;
-      tag.length = rsaPssParams->maskGenAlgoLen;
-      tag.value = rsaPssParams->maskGenAlgo;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, p, &n);
-      //Any error to report?
-      if(error)
-         return error;
-
-      //Advance data pointer
-      p += n;
-      length += n;
-
-      //Write the algorithm identifier of the one-way hash function employed
-      //with the mask generation function
-      error = x509FormatRsaPssMaskGenHashAlgo(rsaPssParams, p, &n);
-      //Any error to report?
-      if(error)
-         return error;
-
-      //Advance data pointer
-      p += n;
-      length += n;
-
-      //The maskGenAlgorithm parameter is encapsulated within a sequence
-      tag.constructed = TRUE;
-      tag.objClass = ASN1_CLASS_UNIVERSAL;
-      tag.objType = ASN1_TYPE_SEQUENCE;
-      tag.length = length;
-      tag.value = output;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, output, &length);
-      //Any error to report?
-      if(error)
-         return error;
-
-      //Explicit tagging shall be used to encode each parameter
-      tag.constructed = TRUE;
-      tag.objClass = ASN1_CLASS_CONTEXT_SPECIFIC;
-      tag.objType = 1;
-      tag.length = length;
-      tag.value = output;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, output, &length);
-      //Any error to report?
-      if(error)
-         return error;
-   }
-
-   //Total number of bytes that have been written
-   *written = length;
-
-   //Successful processing
-   return NO_ERROR;
-}
-
-
-/**
- * @brief Format RSASSA-PSS mask generation hash algorithm
- * @param[in] rsaPssParams Pointer to the RSA-PSS parameters
- * @param[out] output Buffer where to format the ASN.1 structure
- * @param[out] written Length of the resulting ASN.1 structure
- * @return Error code
- **/
-
-error_t x509FormatRsaPssMaskGenHashAlgo(const X509RsaPssParameters *rsaPssParams,
-   uint8_t *output, size_t *written)
-{
-   error_t error;
-   size_t n;
-   Asn1Tag tag;
-
-   //Length of the ASN.1 structure
-   n = 0;
-
-   //The default hash algorithm is SHA-1
-   if(rsaPssParams->maskGenHashAlgo != NULL &&
-      rsaPssParams->maskGenHashAlgoLen > 0)
-   {
-      //Write the algorithm identifier of the one-way hash function employed
-      //with the mask generation function
-      tag.constructed = FALSE;
-      tag.objClass = ASN1_CLASS_UNIVERSAL;
-      tag.objType = ASN1_TYPE_OBJECT_IDENTIFIER;
-      tag.length = rsaPssParams->maskGenHashAlgoLen;
-      tag.value = rsaPssParams->maskGenHashAlgo;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, output, &n);
-      //Any error to report?
-      if(error)
-         return error;
-
-      //The hash algorithm identifier is encapsulated within a sequence
-      tag.constructed = TRUE;
-      tag.objClass = ASN1_CLASS_UNIVERSAL;
-      tag.objType = ASN1_TYPE_SEQUENCE;
-      tag.length = n;
-      tag.value = output;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, output, &n);
-      //Any error to report?
-      if(error)
-         return error;
-   }
-
-   //Total number of bytes that have been written
-   *written = n;
-
-   //Successful processing
-   return NO_ERROR;
-}
-
-
-/**
- * @brief Format RSASSA-PSS salt length
- * @param[in] rsaPssParams Pointer to the RSA-PSS parameters
- * @param[out] output Buffer where to format the ASN.1 structure
- * @param[out] written Length of the resulting ASN.1 structure
- * @return Error code
- **/
-
-error_t x509FormatRsaPssSaltLength(const X509RsaPssParameters *rsaPssParams,
-   uint8_t *output, size_t *written)
-{
-   error_t error;
-   size_t n;
-   Asn1Tag tag;
-
-   //Length of the ASN.1 structure
-   n = 0;
-
-   //The default length of the salt is 20
-   if(rsaPssParams->saltLen != 20)
-   {
-      //Write the length of the salt
-      error = asn1WriteInt32((int32_t) rsaPssParams->saltLen, FALSE, output, &n);
-      //Any error to report?
-      if(error)
-         return error;
-
-      //Explicit tagging shall be used to encode the saltLength parameter
-      tag.constructed = TRUE;
-      tag.objClass = ASN1_CLASS_CONTEXT_SPECIFIC;
-      tag.objType = 2;
-      tag.length = n;
-      tag.value = output;
-
-      //Write the corresponding ASN.1 tag
-      error = asn1WriteTag(&tag, FALSE, output, &n);
-      //Any error to report?
-      if(error)
-         return error;
-   }
-
-   //Total number of bytes that have been written
-   *written = n;
-
-   //Successful processing
-   return NO_ERROR;
-}
-
-
-/**
  * @brief Format DSAPublicKey structure
  * @param[in] dsaPublicKey Pointer to the DSA public key
  * @param[out] output Buffer where to format the DSAPublicKey structure
@@ -852,8 +515,8 @@ error_t x509FormatDsaPublicKey(const X509DsaPublicKey *dsaPublicKey,
    tag.constructed = FALSE;
    tag.objClass = ASN1_CLASS_UNIVERSAL;
    tag.objType = ASN1_TYPE_INTEGER;
-   tag.length = dsaPublicKey->yLen;
-   tag.value = dsaPublicKey->y;
+   tag.length = dsaPublicKey->y.length;
+   tag.value = dsaPublicKey->y.value;
 
    //Write the corresponding ASN.1 tag
    error = asn1WriteTag(&tag, FALSE, output, &n);
@@ -895,8 +558,8 @@ error_t x509FormatDsaParameters(const X509DsaParameters *dsaParams,
    tag.constructed = FALSE;
    tag.objClass = ASN1_CLASS_UNIVERSAL;
    tag.objType = ASN1_TYPE_INTEGER;
-   tag.length = dsaParams->pLen;
-   tag.value = dsaParams->p;
+   tag.length = dsaParams->p.length;
+   tag.value = dsaParams->p.value;
 
    //Write the corresponding ASN.1 tag
    error = asn1WriteTag(&tag, FALSE, p, &n);
@@ -912,8 +575,8 @@ error_t x509FormatDsaParameters(const X509DsaParameters *dsaParams,
    tag.constructed = FALSE;
    tag.objClass = ASN1_CLASS_UNIVERSAL;
    tag.objType = ASN1_TYPE_INTEGER;
-   tag.length = dsaParams->qLen;
-   tag.value = dsaParams->q;
+   tag.length = dsaParams->q.length;
+   tag.value = dsaParams->q.value;
 
    //Write the corresponding ASN.1 tag
    error = asn1WriteTag(&tag, FALSE, p, &n);
@@ -929,8 +592,8 @@ error_t x509FormatDsaParameters(const X509DsaParameters *dsaParams,
    tag.constructed = FALSE;
    tag.objClass = ASN1_CLASS_UNIVERSAL;
    tag.objType = ASN1_TYPE_INTEGER;
-   tag.length = dsaParams->gLen;
-   tag.value = dsaParams->g;
+   tag.length = dsaParams->g.length;
+   tag.value = dsaParams->g.value;
 
    //Write the corresponding ASN.1 tag
    error = asn1WriteTag(&tag, FALSE, p, &n);
@@ -974,16 +637,11 @@ error_t x509FormatDsaParameters(const X509DsaParameters *dsaParams,
 error_t x509FormatEcPublicKey(const X509EcPublicKey *ecPublicKey,
    uint8_t *output, size_t *written)
 {
-   size_t n;
-
-   //Retrieve the length of the EC public key
-   n = ecPublicKey->qLen;
-
    //Copy the EC public key
-   osMemcpy(output, ecPublicKey->q, n);
+   osMemcpy(output, ecPublicKey->q.value, ecPublicKey->q.length);
 
    //Total number of bytes that have been written
-   *written = n;
+   *written = ecPublicKey->q.length;
 
    //Successful processing
    return NO_ERROR;
@@ -1011,8 +669,8 @@ error_t x509FormatEcParameters(const X509EcParameters *ecParams,
    tag.constructed = FALSE;
    tag.objClass = ASN1_CLASS_UNIVERSAL;
    tag.objType = ASN1_TYPE_OBJECT_IDENTIFIER;
-   tag.length = ecParams->namedCurveLen;
-   tag.value = ecParams->namedCurve;
+   tag.length = ecParams->namedCurve.length;
+   tag.value = ecParams->namedCurve.value;
 
    //Write the corresponding ASN.1 tag
    error = asn1WriteTag(&tag, FALSE, output, &n);
@@ -1114,7 +772,7 @@ error_t x509ExportRsaPrivateKey(const RsaPrivateKey *privateKey,
    length = 0;
 
    //Write Version field
-   error = asn1WriteInt32(0, FALSE, p, &n);
+   error = asn1WriteInt32(PKCS1_VERSION_1, FALSE, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -1419,8 +1077,8 @@ error_t x509ExportEcPublicKey(const X509SubjectPublicKeyInfo *publicKeyInfo,
    ecInitDomainParameters(&params);
 
    //Retrieve EC domain parameters
-   curveInfo = x509GetCurveInfo(publicKeyInfo->ecParams.namedCurve,
-      publicKeyInfo->ecParams.namedCurveLen);
+   curveInfo = x509GetCurveInfo(publicKeyInfo->ecParams.namedCurve.value,
+      publicKeyInfo->ecParams.namedCurve.length);
 
    //Make sure the specified elliptic curve is supported
    if(curveInfo != NULL)

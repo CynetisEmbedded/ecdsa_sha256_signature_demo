@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This file is part of CycloneCRYPTO Open.
  *
@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 #ifndef _PKCS8_KEY_PARSE_H
@@ -48,22 +48,14 @@ extern "C" {
 typedef struct
 {
    int32_t version;
-   const uint8_t *n;
-   size_t nLen;
-   const uint8_t *e;
-   size_t eLen;
-   const uint8_t *d;
-   size_t dLen;
-   const uint8_t *p;
-   size_t pLen;
-   const uint8_t *q;
-   size_t qLen;
-   const uint8_t *dp;
-   size_t dpLen;
-   const uint8_t *dq;
-   size_t dqLen;
-   const uint8_t *qinv;
-   size_t qinvLen;
+   X509OctetString n;
+   X509OctetString e;
+   X509OctetString d;
+   X509OctetString p;
+   X509OctetString q;
+   X509OctetString dp;
+   X509OctetString dq;
+   X509OctetString qinv;
 } Pkcs8RsaPrivateKey;
 
 
@@ -73,8 +65,7 @@ typedef struct
 
 typedef struct
 {
-   const uint8_t *x;
-   size_t xLen;
+   X509OctetString x;
 } Pkcs8DsaPrivateKey;
 
 
@@ -85,8 +76,7 @@ typedef struct
 typedef struct
 {
    int32_t version;
-   const uint8_t *d;
-   size_t dLen;
+   X509OctetString d;
 } Pkcs8EcPrivateKey;
 
 
@@ -96,8 +86,7 @@ typedef struct
 
 typedef struct
 {
-   const uint8_t *d;
-   size_t dLen;
+   X509OctetString d;
 } Pkcs8EddsaPrivateKey;
 
 
@@ -108,8 +97,7 @@ typedef struct
 typedef struct
 {
    int32_t version;
-   const uint8_t *oid;
-   size_t oidLen;
+   X509OctetString oid;
 #if (RSA_SUPPORT == ENABLED)
    Pkcs8RsaPrivateKey rsaPrivateKey;
 #endif
@@ -125,6 +113,17 @@ typedef struct
    Pkcs8EddsaPrivateKey eddsaPrivateKey;
 #endif
 } Pkcs8PrivateKeyInfo;
+
+
+/**
+ * @brief Encrypted private key information
+ **/
+
+typedef struct
+{
+   X509AlgoId encryptionAlgo;
+   X509OctetString encryptedData;
+} Pkcs8EncryptedPrivateKeyInfo;
 
 
 //Key parsing functions
@@ -145,6 +144,12 @@ error_t pkcs8ParseEcPrivateKey(const uint8_t *data, size_t length,
 
 error_t pkcs8ParseEddsaPrivateKey(const uint8_t *data, size_t length,
    Pkcs8EddsaPrivateKey *eddsaPrivateKey);
+
+error_t pkcs8ParseEncryptedPrivateKeyInfo(const uint8_t *data, size_t length,
+   Pkcs8EncryptedPrivateKeyInfo *encryptedPrivateKeyInfo);
+
+error_t pkcs8ParseEncryptionAlgoId(const uint8_t *data, size_t length,
+   size_t *totalLength, X509AlgoId *encryptionAlgoId);
 
 error_t pkcs8ImportRsaPrivateKey(const Pkcs8PrivateKeyInfo *privateKeyInfo,
    RsaPrivateKey *privateKey);

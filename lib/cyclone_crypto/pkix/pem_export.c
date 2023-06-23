@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This file is part of CycloneCRYPTO Open.
  *
@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 //Switch to the appropriate trace level
@@ -38,7 +38,6 @@
 #include "pkix/x509_cert_create.h"
 #include "pkix/x509_key_format.h"
 #include "encoding/asn1.h"
-#include "encoding/base64.h"
 #include "mpi/mpi.h"
 #include "debug.h"
 
@@ -170,8 +169,8 @@ error_t pemExportRsaPublicKey(const RsaPublicKey *publicKey,
 
    //The ASN.1 encoded data of the public key is the SubjectPublicKeyInfo
    //structure (refer to RFC 7468, section 13)
-   publicKeyInfo.oid = RSA_ENCRYPTION_OID;
-   publicKeyInfo.oidLen = sizeof(RSA_ENCRYPTION_OID);
+   publicKeyInfo.oid.value = RSA_ENCRYPTION_OID;
+   publicKeyInfo.oid.length = sizeof(RSA_ENCRYPTION_OID);
 
    //Format the SubjectPublicKeyInfo structure
    error = x509FormatSubjectPublicKeyInfo(&publicKeyInfo, publicKey, NULL,
@@ -230,7 +229,7 @@ error_t pemExportRsaPrivateKey(const RsaPrivateKey *privateKey,
    length = 0;
 
    //Format Version field (refer to RFC 5208, section 5)
-   error = asn1WriteInt32(0, FALSE, p, &n);
+   error = asn1WriteInt32(PKCS8_VERSION_1, FALSE, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -243,11 +242,11 @@ error_t pemExportRsaPrivateKey(const RsaPrivateKey *privateKey,
       p += n;
 
    //The PrivateKeyAlgorithm identifies the private-key algorithm
-   publicKeyInfo.oid = RSA_ENCRYPTION_OID;
-   publicKeyInfo.oidLen = sizeof(RSA_ENCRYPTION_OID);
+   publicKeyInfo.oid.value = RSA_ENCRYPTION_OID;
+   publicKeyInfo.oid.length = sizeof(RSA_ENCRYPTION_OID);
 
    //Format PrivateKeyAlgorithm field
-   error = x509FormatAlgorithmIdentifier(&publicKeyInfo, NULL, p, &n);
+   error = x509FormatAlgoId(&publicKeyInfo, NULL, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -327,8 +326,8 @@ error_t pemExportRsaPssPublicKey(const RsaPublicKey *publicKey,
 
    //The ASN.1 encoded data of the public key is the SubjectPublicKeyInfo
    //structure (refer to RFC 7468, section 13)
-   publicKeyInfo.oid = RSASSA_PSS_OID;
-   publicKeyInfo.oidLen = sizeof(RSASSA_PSS_OID);
+   publicKeyInfo.oid.value = RSASSA_PSS_OID;
+   publicKeyInfo.oid.length = sizeof(RSASSA_PSS_OID);
 
    //Format the SubjectPublicKeyInfo structure
    error = x509FormatSubjectPublicKeyInfo(&publicKeyInfo, publicKey, NULL,
@@ -387,7 +386,7 @@ error_t pemExportRsaPssPrivateKey(const RsaPrivateKey *privateKey,
    length = 0;
 
    //Format Version field (refer to RFC 5208, section 5)
-   error = asn1WriteInt32(0, FALSE, p, &n);
+   error = asn1WriteInt32(PKCS8_VERSION_1, FALSE, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -400,11 +399,11 @@ error_t pemExportRsaPssPrivateKey(const RsaPrivateKey *privateKey,
       p += n;
 
    //The PrivateKeyAlgorithm identifies the private-key algorithm
-   publicKeyInfo.oid = RSASSA_PSS_OID;
-   publicKeyInfo.oidLen = sizeof(RSASSA_PSS_OID);
+   publicKeyInfo.oid.value = RSASSA_PSS_OID;
+   publicKeyInfo.oid.length = sizeof(RSASSA_PSS_OID);
 
    //Format PrivateKeyAlgorithm field
-   error = x509FormatAlgorithmIdentifier(&publicKeyInfo, NULL, p, &n);
+   error = x509FormatAlgoId(&publicKeyInfo, NULL, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -484,8 +483,8 @@ error_t pemExportDsaPublicKey(const DsaPublicKey *publicKey,
 
    //The ASN.1 encoded data of the public key is the SubjectPublicKeyInfo
    //structure (refer to RFC 7468, section 13)
-   publicKeyInfo.oid = DSA_OID;
-   publicKeyInfo.oidLen = sizeof(DSA_OID);
+   publicKeyInfo.oid.value = DSA_OID;
+   publicKeyInfo.oid.length = sizeof(DSA_OID);
 
    //Format the SubjectPublicKeyInfo structure
    error = x509FormatSubjectPublicKeyInfo(&publicKeyInfo, publicKey, NULL,
@@ -544,7 +543,7 @@ error_t pemExportDsaPrivateKey(const DsaPrivateKey *privateKey,
    length = 0;
 
    //Format Version field (refer to RFC 5208, section 5)
-   error = asn1WriteInt32(0, FALSE, p, &n);
+   error = asn1WriteInt32(PKCS8_VERSION_1, FALSE, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -557,11 +556,11 @@ error_t pemExportDsaPrivateKey(const DsaPrivateKey *privateKey,
       p += n;
 
    //The PrivateKeyAlgorithm identifies the private-key algorithm
-   publicKeyInfo.oid = DSA_OID;
-   publicKeyInfo.oidLen = sizeof(DSA_OID);
+   publicKeyInfo.oid.value = DSA_OID;
+   publicKeyInfo.oid.length = sizeof(DSA_OID);
 
    //Format PrivateKeyAlgorithm field
-   error = x509FormatAlgorithmIdentifier(&publicKeyInfo, &privateKey->params,
+   error = x509FormatAlgoId(&publicKeyInfo, &privateKey->params,
       p, &n);
    //Any error to report?
    if(error)
@@ -694,10 +693,10 @@ error_t pemExportEcPublicKey(const EcCurveInfo *curveInfo,
 
    //The ASN.1 encoded data of the public key is the SubjectPublicKeyInfo
    //structure (refer to RFC 7468, section 13)
-   publicKeyInfo.oid = EC_PUBLIC_KEY_OID;
-   publicKeyInfo.oidLen = sizeof(EC_PUBLIC_KEY_OID);
-   publicKeyInfo.ecParams.namedCurve = curveInfo->oid;
-   publicKeyInfo.ecParams.namedCurveLen = curveInfo->oidSize;
+   publicKeyInfo.oid.value = EC_PUBLIC_KEY_OID;
+   publicKeyInfo.oid.length = sizeof(EC_PUBLIC_KEY_OID);
+   publicKeyInfo.ecParams.namedCurve.value = curveInfo->oid;
+   publicKeyInfo.ecParams.namedCurve.length = curveInfo->oidSize;
 
    //Format the SubjectPublicKeyInfo structure
    error = x509FormatSubjectPublicKeyInfo(&publicKeyInfo, publicKey, NULL,
@@ -759,7 +758,7 @@ error_t pemExportEcPrivateKey(const EcCurveInfo *curveInfo,
    length = 0;
 
    //Format Version field (refer to RFC 5208, section 5)
-   error = asn1WriteInt32(0, FALSE, p, &n);
+   error = asn1WriteInt32(PKCS8_VERSION_1, FALSE, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -772,13 +771,13 @@ error_t pemExportEcPrivateKey(const EcCurveInfo *curveInfo,
       p += n;
 
    //The PrivateKeyAlgorithm identifies the private-key algorithm
-   publicKeyInfo.oid = EC_PUBLIC_KEY_OID;
-   publicKeyInfo.oidLen = sizeof(EC_PUBLIC_KEY_OID);
-   publicKeyInfo.ecParams.namedCurve = curveInfo->oid;
-   publicKeyInfo.ecParams.namedCurveLen = curveInfo->oidSize;
+   publicKeyInfo.oid.value = EC_PUBLIC_KEY_OID;
+   publicKeyInfo.oid.length = sizeof(EC_PUBLIC_KEY_OID);
+   publicKeyInfo.ecParams.namedCurve.value = curveInfo->oid;
+   publicKeyInfo.ecParams.namedCurve.length = curveInfo->oidSize;
 
    //Format PrivateKeyAlgorithm field
-   error = x509FormatAlgorithmIdentifier(&publicKeyInfo, NULL, p, &n);
+   error = x509FormatAlgoId(&publicKeyInfo, NULL, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -859,8 +858,8 @@ error_t pemExportEddsaPublicKey(const EcCurveInfo *curveInfo,
 
    //The ASN.1 encoded data of the public key is the SubjectPublicKeyInfo
    //structure (refer to RFC 7468, section 13)
-   publicKeyInfo.oid = curveInfo->oid;
-   publicKeyInfo.oidLen = curveInfo->oidSize;
+   publicKeyInfo.oid.value = curveInfo->oid;
+   publicKeyInfo.oid.length = curveInfo->oidSize;
 
    //Format the SubjectPublicKeyInfo structure
    error = x509FormatSubjectPublicKeyInfo(&publicKeyInfo, publicKey, NULL,
@@ -920,7 +919,7 @@ error_t pemExportEddsaPrivateKey(const EcCurveInfo *curveInfo,
    length = 0;
 
    //Format Version field (refer to RFC 5208, section 5)
-   error = asn1WriteInt32(0, FALSE, p, &n);
+   error = asn1WriteInt32(PKCS8_VERSION_1, FALSE, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -933,11 +932,11 @@ error_t pemExportEddsaPrivateKey(const EcCurveInfo *curveInfo,
       p += n;
 
    //The PrivateKeyAlgorithm identifies the private-key algorithm
-   publicKeyInfo.oid = curveInfo->oid;
-   publicKeyInfo.oidLen = curveInfo->oidSize;
+   publicKeyInfo.oid.value = curveInfo->oid;
+   publicKeyInfo.oid.length = curveInfo->oidSize;
 
    //Format PrivateKeyAlgorithm field
-   error = x509FormatAlgorithmIdentifier(&publicKeyInfo, NULL, p, &n);
+   error = x509FormatAlgoId(&publicKeyInfo, NULL, p, &n);
    //Any error to report?
    if(error)
       return error;
@@ -989,67 +988,6 @@ error_t pemExportEddsaPrivateKey(const EcCurveInfo *curveInfo,
    //Not implemented
    return ERROR_NOT_IMPLEMENTED;
 #endif
-}
-
-
-/**
- * @brief Convert ASN.1 data to PEM encoding
- * @param[in] input ASN.1 data to encode
- * @param[in] inputLen Length of the ASN.1 data to encode
- * @param[in] label Label indicating the type of data
- * @param[out] output PEM container (optional parameter)
- * @param[out] outputLen Length of the PEM container
- **/
-
-error_t pemEncodeFile(const void *input, size_t inputLen, const char_t *label,
-   char_t *output, size_t *outputLen)
-{
-   size_t n;
-   size_t labelLen;
-   char_t *p;
-
-   //Check parameters
-   if(input == NULL || label == NULL || outputLen == NULL)
-      return ERROR_INVALID_PARAMETER;
-
-   //Calculate the length of the label
-   labelLen = osStrlen(label);
-
-   //Encode the ASN.1 data using Base64
-   base64Encode(input, inputLen, output, &n);
-
-   //If the output parameter is NULL, then the function calculates the length
-   //of the resulting PEM file without copying any data
-   if(output != NULL)
-   {
-      //A PEM file starts with a beginning tag
-      p = output + osStrlen("-----BEGIN -----\r\n") + labelLen;
-
-      //Make room for the beginning tag
-      osMemmove(p, output, n);
-
-      //The type of data encoded is labeled depending on the type label in
-      //the "-----BEGIN " line (refer to RFC 7468, section 2)
-      osStrcpy(output, "-----BEGIN ");
-      osStrcpy(output + 11, label);
-      osMemcpy(p - 7, "-----\r\n", 7);
-
-      //Generators must put the same label on the "-----END " line as the
-      //corresponding "-----BEGIN " line
-      osStrcpy(p + n, "\r\n-----END ");
-      osStrcpy(p + n + 11, label);
-      osStrcpy(p + n + labelLen + 11, "-----\r\n");
-   }
-
-   //Consider the length of the PEM tags
-   n += osStrlen("-----BEGIN -----\r\n") + labelLen;
-   n += osStrlen("\r\n-----END -----\r\n") + labelLen;
-
-   //Total number of bytes that have been written
-   *outputLen = n;
-
-   //Successful processing
-   return NO_ERROR;
 }
 
 #endif

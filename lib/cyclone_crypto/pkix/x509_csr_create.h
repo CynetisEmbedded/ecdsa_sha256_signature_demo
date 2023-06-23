@@ -6,7 +6,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
- * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ * Copyright (C) 2010-2023 Oryx Embedded SARL. All rights reserved.
  *
  * This file is part of CycloneCRYPTO Open.
  *
@@ -25,7 +25,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  * @author Oryx Embedded SARL (www.oryx-embedded.com)
- * @version 2.1.6
+ * @version 2.3.0
  **/
 
 #ifndef _X509_CSR_CREATE_H
@@ -43,19 +43,7 @@ extern "C" {
 //CSR related functions
 error_t x509CreateCsr(const PrngAlgo *prngAlgo, void *prngContext,
    const X509CertRequestInfo *certReqInfo, const void *subjectPublicKey,
-   const X509SignatureAlgoId *signatureAlgo, const void *signerPrivateKey,
-   uint8_t *output, size_t *written);
-
-error_t x509FormatCertRequestInfo(const X509CertRequestInfo *certReqInfo,
-   const void *publicKey, uint8_t *output, size_t *written);
-
-error_t x509FormatAttributes(const X509Attributes *attributes,
-   uint8_t *output, size_t *written);
-
-error_t x509FormatChallengePassword(const X509ChallengePassword *challengePwd,
-   uint8_t *output, size_t *written);
-
-error_t x509FormatExtensionRequest(const X509Extensions *extensionReq,
+   const X509SignAlgoId *signatureAlgo, const void *signerPrivateKey,
    uint8_t *output, size_t *written);
 
 //C++ guard
